@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>عيد ميلاد سعيد - احتفال ملكي</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Cinzel:wght@600;800;900&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+        width: 100%;
+        height: 100%;
+        background: #020205;
+        overflow: hidden;
+        font-family: 'Cairo', sans-serif;
+    }
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        z-index: 1;
+        touch-action: none;
+    }
+
+    /* Glassmorphism Overlay UI */
+    #overlay {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(15, 10, 30, 0.85) 0%, rgba(2, 2, 5, 0.98) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        z-index: 100;
+        padding: 20px;
+        transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
+    }
+    #overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .card-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 215, 0, 0.25);
+        border-radius: 28px;
+        padding: 35px 25px;
+        width: min(90vw, 420px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.05);
+        text-align: center;
+    }
+
+    .title-glow {
+        font-family: 'Cinzel', serif;
+        font-size: clamp(24px, 5.5vw, 38px);
+        font-weight: 900;
+        background: linear-gradient(135deg, #FFF 0%, #FFD700 50%, #FF8C00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+        letter-spacing: 1px;
+    }
+
+    .subtitle {
+        color: #d1c4e9;
+        font-size: clamp(14px, 3.2vw, 17px);
+        font-weight: 400;
+    }
+
+    .input-group {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: right;
+    }
+
+    .input-group label {
+        font-size: 13px;
+        color: #ffb74d;
+        font-weight: 700;
+        padding-right: 8px;
+    }
+
+    .custom-input {
+        width: 100%;
+        font-size: 16px;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 183, 77, 0.3);
+        border-radius: 16px;
+        padding: 14px 18px;
+        outline: none;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-family: 'Cairo', sans-serif;
+    }
+
+    .custom-input:focus {
+        border-color: #ffd700;
+        box-shadow: 0 0 18px rgba(255, 215, 0, 0.3);
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    .custom-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+
+    .error-msg {
+        color: #ff5252;
+        font-size: 13px;
+        min-height: 18px;
+        font-weight: bold;
+    }
+
+    .start-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #ffd700, #ff8c00);
+        color: #000;
+        font-size: 18px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .start-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(255, 215, 0, 0.6);
+    }
+
+    .start-btn:active {
+        transform: translateY(1px);
+    }
+
+    /* Floating Control Buttons */
+    .btn-circle {
+        position: fixed;
+        bottom: 25px;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        background: rgba(15, 10, 25, 0.75);
+        backdrop-filter: blur(10px);
+        color: #ffd700;
+        font-size: 22px;
+        cursor: pointer;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .btn-circle:hover {
+        transform: scale(1.1);
+        border-color: #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    #musicBtn { right: 25px; }
+    #contactBtn { left: 25px; }
+
+    /* Modal Styling */
+    #contactModal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+        padding: 20px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    #contactModal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-box {
+        background: rgba(20, 15, 30, 0.95);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 24px;
+        padding: 30px;
+        width: min(90vw, 360px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-title {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .dev-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: transform 0.2s ease;
+    }
+
+    .dev-btn:active { transform: scale(0.96); }
+    .dev-btn.subaru { background: linear-gradient(135deg, #1e88e5, #0d47a1); box-shadow: 0 4px 15px rgba(30, 136, 229, 0.4); }
+    .dev-btn.barakat { background: linear-gradient(135deg, #fb8c00, #e65100); box-shadow: 0 4px 15px rgba(251, 140, 0, 0.4); }
+
+    .close-btn {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #aaa;
+        border-radius: 12px;
+        padding: 8px 20px;
+        cursor: pointer;
+        margin-top: 5px;
+        transition: all 0.2s;
+    }
+
+    .close-btn:hover { color: #fff; border-color: #fff; }
+
+    /* Shake Animation */
+    .shake { animation: shake 0.4s ease-in-out; }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-10px); }
+        40%, 80% { transform: translateX(10px); }
+    }
+</style>
+</head>
+<body>
+
+<audio id="song" loop preload="auto">
+    <source src="https://files.catbox.moe/4nv0wa.mp3" type="audio/mpeg">
+</audio>
+
+<canvas id="scene"></canvas>
+
+<!-- Registration / Entry Overlay -->
+<div id="overlay">
+    <div class="card-box">
+        <div class="title-glow">HAPPY BIRTHDAY</div>
+        <div class="subtitle">صمم مفاجأة خاصة لك ✨</div>
+        
+        <div class="input-group">
+            <label>اسمك يا قلبي🫦 (بالإنجليزي):</label>
+            <input id="nameInput" class="custom-input" type="text" maxlength="20" placeholder="e.g. AHMAD" autocomplete="off" />
+        </div>
+
+        <div class="input-group">
+            <label>تاريخ الميلاد (DD/MM/YYYY):</label>
+            <input id="dateInput" class="custom-input" type="text" placeholder="25/06/2008" autocomplete="off" />
+        </div>
+
+        <div id="errorMsg" class="error-msg"></div>
+
+        <button id="startBtn" class="start-btn">🚀 ابدأ العرض الملكي</button>
+    </div>
+</div>
+
+<!-- Floating Controls -->
+<button id="musicBtn" class="btn-circle hidden" title="تشغيل/إيقاف الصوت">🎵</button>
+<button id="contactBtn" class="btn-circle hidden" title="تواصل مع المطورين">💬</button>
+
+<!-- Contact Modal -->
+<div id="contactModal">
+    <div class="modal-box">
+        <div class="modal-title">✨ تواصل مع المطورين</div>
+        <a class="dev-btn subaru" href="https://wa.me/201289524281" target="_blank" rel="noopener">
+            <span>📱</span> 𝑺𝑼𝑩𝑨𝑹𝑼𝑨
+        </a>
+        <a class="dev-btn 𝒁𝑨𝑾𝑭𝑨𝑵 " href="https://wa.me/201093379521" target="_blank" rel="noopener">
+            <span>📱</span> 𝑩𝒂𝒓𝒂𝒌𝒂𝒕
+        </a>
+        <button id="closeModal" class="close-btn">إغلاق</button>
+    </div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    var canvas = document.getElementById("scene");
+    var ctx = canvas.getContext("2d");
+    var overlay = document.getElementById("overlay");
+    var song = document.getElementById("song");
+    var musicBtn = document.getElementById("musicBtn");
+    var contactBtn = document.getElementById("contactBtn");
+    var nameInput = document.getElementById("nameInput");
+    var dateInput = document.getElementById("dateInput");
+    var startBtn = document.getElementById("startBtn");
+    var errorMsg = document.getElementById("errorMsg");
+    var contactModal = document.getElementById("contactModal");
+    var closeModal = document.getElementById("closeModal");
+
+    var userName = "";
+    var userAge = 17; // ثابت بناءً على الملاحظات
+    var bgReady = false;
+
+    // رابط الصورة الجديد المطلوب
+    var PHOTO_URL = "https://files.catbox.moe/tsgyh7.jpg";
+
+    var LYRICS = [
+        "Happy birthday to you 🎂",
+        "Happy birthday to you ✨",
+        "Happy birthday dear friend ❤️",
+        "May all your dreams come true 🌟",
+        "Today is YOUR special day 🎉",
+        "Cheers to another great year 🥂"
+    ];
+    var LYRIC_DURATION = 3800;
+
+    var bgImg = new Image();
+    bgImg.crossOrigin = "anonymous";
+    bgImg.onload = function () { bgReady = true; };
+    bgImg.src = PHOTO_URL;
+
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0, H = 0;
+
+    function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // Scene Particles & Fireworks Engine
+    var fireworks = [];
+    var particles = [];
+    var sparkles = [];
+    var flowers = [];
+    var started = false;
+    var startTime = 0;
+
+    function random(min, max) { return min + Math.random() * (max - min); }
+
+    function Firework(x, targetY) {
+        this.x = x;
+        this.y = H;
+        this.targetY = targetY;
+        this.speed = random(7, 12);
+        this.angle = -Math.PI / 2 + random(-0.1, 0.1);
+        this.vx = Math.cos(this.angle) * this.speed;
+        this.vy = Math.sin(this.angle) * this.speed;
+        this.hue = random(0, 360);
+        this.dead = false;
+    }
+
+    Firework.prototype.update = function () {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.vy < 0 && this.y <= this.targetY) {
+            this.dead = true;
+            this.explode();
+        }
+    };
+
+    Firework.prototype.explode = function () {
+        var count = Math.floor(random(40, 70));
+        for (var i = 0; i < count; i++) {
+            particles.push(new Particle(this.x, this.y, this.hue));
+        }
+    };
+
+    Firework.prototype.draw = function () {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "hsl(" + this.hue + ", 100%, 70%)";
+        ctx.fill();
+        ctx.restore();
+    };
+
+    function Particle(x, y, hue) {
+        this.x = x;
+        this.y = y;
+        this.angle = random(0, Math.PI * 2);
+        this.speed = random(1, 8);
+        this.vx = Math.cos(this.angle) * this.speed;
+        this.vy = Math.sin(this.angle) * this.speed;
+        this.gravity = 0.08;
+        this.friction = 0.96;
+        this.alpha = 1;
+        this.decay = random(0.012, 0.025);
+        this.hue = hue + random(-20, 20);
+    }
+
+    Particle.prototype.update = function () {
+        this.vx *= this.friction;
+        this.vy *= this.friction;
+        this.vy += this.gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= this.decay;
+    };
+
+    Particle.prototype.draw = function () {
+        if (this.alpha <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, random(1.5, 3), 0, Math.PI * 2);
+        ctx.fillStyle = "hsl(" + this.hue + ", 100%, 65%)";
+        ctx.shadowColor = "hsl(" + this.hue + ", 100%, 50%)";
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.restore();
+    };
+
+    function initParticles() {
+        for (var i = 0; i < 50; i++) {
+            sparkles.push({
+                x: random(0, W),
+                y: random(0, H),
+                r: random(1, 2.5),
+                alpha: random(0.2, 0.9),
+                speed: random(0.01, 0.03)
+            });
+        }
+        for (var j = 0; j < 15; j++) {
+            flowers.push({
+                x: random(0, W),
+                y: random(-H, 0),
+                size: random(18, 28),
+                speedY: random(1, 2.2),
+                rot: random(0, Math.PI * 2),
+                rotSpeed: random(-0.02, 0.02)
+            });
+        }
+    }
+
+    function drawBackground() {
+        if (bgReady) {
+            var scale = Math.max(W / bgImg.width, H / bgImg.height);
+            var dw = bgImg.width * scale;
+            var dh = bgImg.height * scale;
+            ctx.drawImage(bgImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+
+            // Overlay dark gradient for elegance
+            var gradient = ctx.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, Math.max(W, H) * 0.8);
+            gradient.addColorStop(0, "rgba(5, 5, 12, 0.65)");
+            gradient.addColorStop(1, "rgba(2, 2, 5, 0.92)");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, W, H);
+        } else {
+            ctx.fillStyle = "#05050d";
+            ctx.fillRect(0, 0, W, H);
+        }
+    }
+
+    function drawGlowText(text, x, y, size, alpha, color, blurColor) {
+        if (alpha <= 0) return;
+        ctx.save();
+        ctx.font = "900 " + size + "px 'Cinzel', 'Cairo', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = blurColor || "#ffd700";
+        ctx.shadowBlur = size * 0.6;
+        ctx.fillStyle = color || "#fff";
+        ctx.fillText(text, x, y);
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(text, x, y);
+        ctx.restore();
+    }
+
+    function animate() {
+        var elapsed = performance.now() - startTime;
+
+        drawBackground();
+
+        // Launch Random Fireworks
+        if (Math.random() < 0.04) {
+            fireworks.push(new Firework(random(W * 0.1, W * 0.9), random(H * 0.15, H * 0.45)));
+        }
+
+        // Update & Draw Fireworks
+        for (var i = fireworks.length - 1; i >= 0; i--) {
+            fireworks[i].update();
+            fireworks[i].draw();
+            if (fireworks[i].dead) fireworks.splice(i, 1);
+        }
+
+        for (var j = particles.length - 1; j >= 0; j--) {
+            particles[j].update();
+            particles[j].draw();
+            if (particles[j].alpha <= 0) particles.splice(j, 1);
+        }
+
+        // Floating Flowers/Petals
+        for (var k = 0; k < flowers.length; k++) {
+            var f = flowers[k];
+            f.y += f.speedY;
+            f.rot += f.rotSpeed;
+            if (f.y > H + 40) { f.y = -30; f.x = random(0, W); }
+
+            ctx.save();
+            ctx.translate(f.x, f.y);
+            ctx.rotate(f.rot);
+            ctx.font = f.size + "px serif";
+            ctx.fillText("🌸", 0, 0);
+            ctx.restore();
+        }
+
+        // Main Text Rendering
+        var textFade = Math.min(1, elapsed / 2000);
+        var baseSize = Math.min(W, H) * 0.085;
+
+        drawGlowText("HAPPY BIRTHDAY", W / 2, H * 0.22, baseSize, textFade, "#ffd700", "#ff8c00");
+        
+        if (userName) {
+            drawGlowText(userName.toUpperCase(), W / 2, H * 0.32, baseSize * 0.9, textFade, "#ffffff", "#ffd700");
+        }
+
+        drawGlowText("YOU ARE " + userAge + " TODAY!", W / 2, H * 0.40, baseSize * 0.45, textFade * 0.9, "#ffb74d", "#ff5722");
+
+        // Lyrics Sync Engine
+        if (elapsed > 2000) {
+            var lyricTime = elapsed - 2000;
+            var idx = Math.floor(lyricTime / LYRIC_DURATION) % LYRICS.length;
+            var subTime = lyricTime % LYRIC_DURATION;
+            var alpha = Math.sin((subTime / LYRIC_DURATION) * Math.PI);
+
+            drawGlowText(LYRICS[idx], W / 2, H * 0.65, baseSize * 0.5, alpha, "#ffffff", "#e91e63");
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    // Input Validations & Triggers
+    function triggerError(msg, element) {
+        errorMsg.textContent = msg;
+        element.classList.add("shake");
+        setTimeout(function () { element.classList.remove("shake"); }, 400);
+        element.focus();
+    }
+
+    nameInput.addEventListener("input", function () {
+        var clean = nameInput.value.replace(/[^a-zA-Z ]/g, "");
+        if (clean !== nameInput.value) {
+            nameInput.value = clean;
+            errorMsg.textContent = "الرجاء كتابة الاسم بالأحرف الإنجليزية فقط";
+        } else {
+            errorMsg.textContent = "";
+        }
+    });
+
+    function startCelebration() {
+        userName = nameInput.value.trim();
+        var dateVal = dateInput.value.trim();
+
+        if (!userName) {
+            triggerError("من فضلك أدخل اسم صاحبك أولاً", nameInput);
+            return;
+        }
+
+        if (!dateVal) {
+            triggerError("من فضلك أدخل تاريخ الميلاد (مثال: 25/06/2008)", dateInput);
+            return;
+        }
+
+        started = true;
+        overlay.classList.add("hidden");
+        musicBtn.classList.remove("hidden");
+        contactBtn.classList.remove("hidden");
+
+        song.play().catch(function () {});
+        initParticles();
+        startTime = performance.now();
+        requestAnimationFrame(animate);
+    }
+
+    startBtn.addEventListener("click", startCelebration);
+
+    musicBtn.addEventListener("click", function () {
+        if (song.paused) {
+            song.play();
+            musicBtn.innerHTML = "🎵";
+        } else {
+            song.pause();
+            musicBtn.innerHTML = "🔇";
+        }
+    });
+
+    contactBtn.addEventListener("click", function () {
+        contactModal.classList.add("active");
+    });
+
+    closeModal.addEventListener("click", function () {
+        contactModal.classList.remove("active");
+    });
+
+    contactModal.addEventListener("click", function (e) {
+        if (e.target === contactModal) {
+            contactModal.classList.remove("active");
+        }
+    });
+
+})();
+</script>
+</body>
+</html>
